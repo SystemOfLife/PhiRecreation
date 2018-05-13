@@ -118,7 +118,8 @@ public :
    TFile *f;
 
    Float_t m2, m2sigma;
-   Float_t sigtof;
+   //Float_t sigtof;
+   Double_t m_inv;
 
    Selector(TTree * /*tree*/ =0) : fChain(0) { }
    virtual ~Selector() { }

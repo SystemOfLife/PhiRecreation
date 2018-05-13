@@ -44,7 +44,7 @@ void Selector::Begin(TTree * /*tree*/)
 
    hm2pE = new TH2F ("hm2pE","m^{2}", 200,-0.2,1.5,200, -100,100); //m^{2} vs p histogram booking
    hm2pW = new TH2F ("hm2pW", "m^{2}", 200,-0.2,1.5,200, -100,100); //m^{2} vs p histogram booking
-   minv = new TH1F ("minv","Invariant mass",200,-0.2,100);
+   minv = new TH1F ("minv","Invariant mass",100,-0.2,1200);
 
 
    TString option = GetOption();
@@ -87,82 +87,88 @@ Bool_t Selector::Process(Long64_t entry)
          std::cout << entry << std::endl;
     }
 
-/*    if (entry > 1000)
-    {
-      Abort("BFVSDGFVD");
-    }*/
+   // if (entry > 1000)
+   //  {
+   //    Abort("BFVSDGFVD");
+   //  }
 
    fChain->GetEntry(entry); 
 
 
-   if(cent>0 && cent<=80){
-        // std::cout << "cenOk" << std::endl;
-      /*hcent->Fill(centrality);
-      hRun->Fill(run);
-      hbbcz->Fill(bbcz);*/
-      for(int itrk=0;itrk<mh;itrk++) {  //track loop
+   if(cent>0 && cent<=80)
+   {
+      for(Int_t itrk=0; itrk<mh; itrk++)
+      {
          //if(pt>0.4&&pt<3.8){ // track selection
-         std::cout << "dcarm[itrk]: " << dcarm[itrk] << "    pltof[itrk]: " << pltof[itrk]<< "    etof[itrk]: " << etof[itrk]<< "    sigtof[itrk]: " << sigtof[itrk] << std::endl;
-            if((dcarm[itrk]==0) && (pltof[itrk]>0) && (etof[itrk]>0.002) && (sigtof[itrk]<3){        //Tof East selection
-               std::cout << "hm2pEOk" << std::endl;
+         //std::cout << "dcarm[itrk]: " << dcarm[itrk] << "    pltof[itrk]: " << pltof[itrk]<< "    etof[itrk]: " << etof[itrk]<< "    sigtof[itrk]: " << sigtof[itrk] << std::endl;
+            if( (dcarm[itrk]==0) && (pltof[itrk]>0) && (etof[itrk]>0.002) && (sigtof[itrk]<3) )
+            {        //Tof East selection
+               //std::cout << "hm2pEOk" << std::endl;
                float tmp=(ttof[itrk]*c2)/pltof[itrk];
                m2=(p[itrk]*p[itrk]*((tmp*tmp)-1))/c2;
                m2sigma=(abs(m2-phi_mass2))/sigma_m2;
                hm2pE->Fill(m2sigma,p[itrk]);
+
+               if( m2sigma > (phi_mass2-sigma_m2) && (m2sigma < (phi_mass2 + sigma_m2)) && (charge[itrk] > 0) )
+               {
+                  par_1.SetRho(p[itrk]);
+                  par_1.SetTheta(the0[itrk]);
+                  par_1.SetPhi(phi0[itrk]);
+                  par_1.SetE(etof[itrk]);
+                  for( Int_t jtrk=0; jtrk<mh; jtrk++)
+                  {
+                     if (m2sigma > (phi_mass2-sigma_m2) && (m2sigma<phi_mass2+sigma_m2) && (charge[itrk]<0))
+                     {
+                        par_2.SetRho(p[jtrk]);
+                        par_2.SetTheta(the0[jtrk]);
+                        par_2.SetE(etof[jtrk]);
+                        par_2.SetPhi(phi0[jtrk]);
+                     }
+                     pair=par_1+par_2;
+                     m_inv=pair.M();
+                     minv->Fill(m_inv);
+                   
+                  }
+               }
             }
 
-            if( m2sigma > (phi_mass2-sigma_m2) && m2sigma < (phi_mass2 + sigma_m2) && (charge[itrk] > 0)){
-               par_1.SetRho(p[itrk]);
-               par_1.SetTheta(the0[itrk]);
-               par_1.SetPhi(phi0[itrk]);
-               par_1.SetE(etof[itrk]);
-               for( Int_t jtrk=0; jtrk<mh; jtrk++){
-                  if (m2sigma > (phi_mass2-sigma_m2) && (m2sigma<phi_mass2+sigma_m2) && (charge[itrk]<0)){
-                     par_2.SetRho(p[jtrk]);
-                     par_2.SetTheta(the0[jtrk]);
-                     par_2.SetE(etof[jtrk]);
-                     par_2.SetPhi(phi0[jtrk])
-                  }
-                  pair=par_1+par_2;
-                  m_inv=pair.M();
-                  minv->Fill(m_inv);
-               
-                  
-               }
-            }// end of tof east selection
 
 
 
-
-
-               if((dcarm[itrk]==1) && (pltof[itrk]>0) && (etof[itrk]>60) && (etof[itrk]<600) && (sigtof[itrk]<3)){// Tof West selection
+            else
+            {
+               if((dcarm[itrk]==1) && (pltof[itrk]>0) && (etof[itrk]>60) && (etof[itrk]<600) && (sigtof[itrk]<3))
+               {// Tof West selection
                   float tmp=(ttof[itrk]*c2)/pltof[itrk];
                   m2=(p[itrk]*p[itrk]*((tmp*tmp)-1))/c2;
                   m2sigma=(abs(m2-phi_mass2))/sigma_m2;
                   hm2pW->Fill(m2,p[itrk]);
-                  if(m2sigma>phi_mass2-sigma_m2 && m2sigma<phi_mass2+sigma_m2 && charge[itrk]>0){
+                  if(m2sigma>phi_mass2-sigma_m2 && m2sigma<phi_mass2+sigma_m2 && charge[itrk]>0)
+                  {
                      par_1.SetRho(p[itrk]);
                      par_1.SetTheta(the0[itrk]);
                      par_1.SetPhi(phi0[itrk]);
                      par_1.SetE(etof[itrk]);
-                     for( Int_t jtrk=0; jtrk<mh;jtrk++){
-                        if (m2sigma>phi_mass2-sigma_m2 && m2sigma<phi_mass2+sigma_m2 && charge[itrk]<0){
+                     for( Int_t jtrk=0; jtrk<mh;jtrk++)
+                     {
+                        if ( (m2sigma>(phi_mass2-sigma_m2)) && (m2sigma<(phi_mass2+sigma_m2)) && (charge[itrk]<0)) 
+                        {
                            par_2.SetRho(p[jtrk]);
                            par_2.SetTheta(the0[jtrk]);
                            par_2.SetE(etof[jtrk]);
-                           par_2.SetPhi(phi0[jtrk])
+                           par_2.SetPhi(phi0[jtrk]);
                         }
-                     pair=par_1+par_2;
-                     m_inv=pair.M();
-                     minv->Fill(m_inv);
-                  
-                     
+                        pair=par_1+par_2;
+                        m_inv=pair.M();
+                        minv->Fill(m_inv);
                      }
                   }
                }
-   return kTRUE;
+            }
       }
    }
+   return kTRUE;
+}
 
          
 
@@ -173,19 +179,15 @@ void Selector::SlaveTerminate()
    // The SlaveTerminate() function is called after all entries or objects
    // have been processed. When running with PROOF SlaveTerminate() is called
    // on each slave server.
-   std::cout << "!!!DEBUG111" << std::endl;
    hm2pE->Write();
    hm2pW->Write();
    minv->Write();
-   std::cout << "!!!DEBUG222" << std::endl;
-
+   
    //delete hm2pE;
    //delete hm2pW;
    //delete minv;
-   std::cout << "!!!DEBUG333" << std::endl;
 
    f->Close();
-   std::cout << "!!!DEBUG444" << std::endl;
 }
 
 void Selector::Terminate()
