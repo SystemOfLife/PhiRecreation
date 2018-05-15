@@ -31,7 +31,9 @@
 const Double_t c = TMath::C() / 10000000;
 const Double_t c2 = c*c;
 const Float_t K_mass2 = 0.49366716*0.49366716;
-const Float_t sigma_m2 = 0.000016;
+const Float_t sigma_m2E = 120;
+const Float_t sigma_m2W = 90;
+const Float_t sigma_m2 = 0.016;
 //#define sigma
 
 
@@ -43,8 +45,8 @@ void Selector::Begin(TTree * /*tree*/)
    f = new TFile("testfile.root", "recreate");
 
 
-   hm2pE = new TH2F ("hm2pE","m^{2}", 200,-0.2,1.5,200, -100,100); //m^{2} vs p histogram booking
-   hm2pW = new TH2F ("hm2pW", "m^{2}", 200,-0.2,1.5,200, -100,100); //m^{2} vs p histogram booking
+   hm2pE = new TH2F ("hm2pE","m^{2}", 200,-0.2,1.2,200, -0.2,10); //m^{2} vs p histogram booking
+   hm2pW = new TH2F ("hm2pW", "m^{2}", 200,-0.2,1.5,200, -0.2,10); //m^{2} vs p histogram booking
    minv = new TH1F ("minv","Invariant mass",10000,-10000,10000);
 
 
@@ -88,9 +90,9 @@ Bool_t Selector::Process(Long64_t entry)
          std::cout << entry << std::endl;
     }
 
-    //if (entry > 1000)
+    if (entry > 500)
      {
-       //Abort("BFVSDGFVD");
+       Abort("BFVSDGFVD");
      }
 
    fChain->GetEntry(entry); 
@@ -111,16 +113,16 @@ Bool_t Selector::Process(Long64_t entry)
             {        //Tof East selection
                //std::cout << "hm2pEOk" << std::endl;
                std::cout << "ttof= " << ttof[itrk] << " pltof= " << pltof[itrk] << "p= " << p[itrk] << std::endl;
-               float tmp=(ttof[itrk]*c)/pltof[itrk];
-               m2=(p[itrk]*p[itrk]*((tmp*tmp)-1))/c2;   //В чём измеряется импульс? разобраться с единицами измерения
-               std::cout << "m2=" << m2 << std::endl;
+               float tmp=(ttof[itrk])/pltof[itrk]*c;
+               m2 = (p[itrk]*p[itrk]*((tmp*tmp)-1));   //В чём измеряется импульс? разобраться с единицами измерения
+               std::cout << "tmp = " << tmp << " m2=" << m2 << std::endl;
 
-               m2sigma=(fabs(m2-K_mass2))/sigma_m2;
+               m2sigma=(fabs(m2-K_mass2))/sigma_m2E;
                hm2pE->Fill(m2sigma,p[itrk]);
                std::cout << "hm2pE fill " << m2sigma << " " << p[itrk] << std::endl;
                //      std::cout << "m2sigma " <<  << std::endl;
 
-               if( m2sigma > (K_mass2-sigma_m2) && (m2sigma < (K_mass2 + sigma_m2)) && (charge[itrk] > 0) )
+               if( m2sigma > (K_mass2-sigma_m2E) && (m2sigma < (K_mass2 + sigma_m2E)) && (charge[itrk] > 0) )
                {
                   par_1.SetRho(p[itrk]);
                   par_1.SetTheta(the0[itrk]);
@@ -128,7 +130,7 @@ Bool_t Selector::Process(Long64_t entry)
                   par_1.SetE(etof[itrk]);
                   for( Int_t jtrk=0; jtrk<mh; jtrk++)
                   {
-                     if (m2sigma > (K_mass2-sigma_m2) && (m2sigma<K_mass2+sigma_m2) && (charge[itrk]<0))
+                     if (m2sigma > (K_mass2-sigma_m2E) && (m2sigma<K_mass2+sigma_m2E) && (charge[itrk]<0))
                      {
                         par_2.SetRho(p[jtrk]);
                         par_2.SetTheta(the0[jtrk]);
@@ -136,6 +138,7 @@ Bool_t Selector::Process(Long64_t entry)
                         par_2.SetPhi(phi0[jtrk]);
                      }
                      pair=par_1+par_2;
+                     std::cout << "pair  " << pair << "par_1" << par_1 << "par_2" << par_2 << std::endl;
                      m_inv=pair.M();
                      minv->Fill(m_inv);
                      std::cout << "minv fill " << minv << std::endl;
@@ -151,11 +154,11 @@ Bool_t Selector::Process(Long64_t entry)
             {
                if((dcarm[itrk]==1) && (pltof[itrk]>0) && (etof[itrk]>60) && (etof[itrk]<600) && (sigtof[itrk]<3))
                {// Tof West selection
-                  float tmp=(ttof[itrk]*c2)/pltof[itrk];
+                  float tmp=(ttof[itrk]*c)/pltof[itrk];
                   m2=(p[itrk]*p[itrk]*((tmp*tmp)-1))/c2;
-                  m2sigma=(fabs(m2-K_mass2))/sigma_m2;
+                  m2sigma=(fabs(m2-K_mass2))/sigma_m2W;
                   hm2pW->Fill(m2,p[itrk]);
-                  if(m2sigma>K_mass2-sigma_m2 && m2sigma<K_mass2+sigma_m2 && charge[itrk]>0)
+                  if(m2sigma>K_mass2-sigma_m2W && m2sigma<K_mass2+sigma_m2W && charge[itrk]>0)
                   {
                      par_1.SetRho(p[itrk]);
                      par_1.SetTheta(the0[itrk]);
@@ -163,7 +166,7 @@ Bool_t Selector::Process(Long64_t entry)
                      par_1.SetE(etof[itrk]);
                      for( Int_t jtrk=0; jtrk<mh;jtrk++)
                      {
-                        if ( (m2sigma>(K_mass2-sigma_m2)) && (m2sigma<(K_mass2+sigma_m2)) && (charge[itrk]<0)) 
+                        if ( (m2sigma>(K_mass2-sigma_m2W)) && (m2sigma<(K_mass2+sigma_m2W)) && (charge[itrk]<0)) 
                         {
                            par_2.SetRho(p[jtrk]);
                            par_2.SetTheta(the0[jtrk]);
