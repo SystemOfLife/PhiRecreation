@@ -138,7 +138,7 @@ Bool_t Selector::Process(Long64_t entry)
                         par_2.SetPhi(phi0[jtrk]);
                      }
                      pair=par_1+par_2;
-                     std::cout << "pair  " << pair << "par_1" << par_1 << "par_2" << par_2 << std::endl;
+                     std::cout << "pair.Rho  " << pair.Rho << "pair.Phi" pair.Phi << "pair.Theta" << pair.Theta << "pair.E" << pair.E << std::endl;
                      m_inv=pair.M();
                      minv->Fill(m_inv);
                      std::cout << "minv fill " << minv << std::endl;
