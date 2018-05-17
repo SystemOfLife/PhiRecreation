@@ -12,6 +12,7 @@
 #include <TChain.h>
 #include <TFile.h>
 #include <TSelector.h>
+#include <TLorentzVector.h>
 
 // Header file for the classes stored in the TTree if any.
 
@@ -109,19 +110,28 @@ public :
    TBranch        *b_isP;   //!
    TBranch        *b_isK;   //!
 
+   TH2F *hm2pE;
+   TH2F *hm2pW;
+   TH1F *minvE;
+   TH1F *minvW;
+   TH1F *hm2E;
+   TH1F *hm2W;
+   TFile *f;
+
    TLorentzVector par_1;  //Initialisation of var for Selector.C
    TLorentzVector par_2;
    TLorentzVector pair;
-   TH2F *hm2pE;
-   TH2F *hm2pW;
-   TH1F *minv;
-   TFile *f;
 
    Float_t m2, m2sigma;
    //Float_t sigtof;
-   Double_t m_inv;
+   Float_t m_inv;
 
-   Selector(TTree * /*tree*/ =0) : fChain(0) { }
+   bool is_Good[52];
+   bool is_KaonP[52];
+   bool is_KaonM[52];
+   Float_t is_m2[52];
+
+   Selector(TTree * /*tree*/ =0) : fChain(0), par_1(1,1,1,1), par_2(1,1,1,1), pair(1,1,1,1) { }
    virtual ~Selector() { }
    virtual Int_t   Version() const { return 2; }
    virtual void    Begin(TTree *tree);
@@ -138,6 +148,16 @@ public :
    virtual void    Terminate();
 
    ClassDef(Selector,0);
+private:
+   void dropArrays() {
+      for (int i = 0; i < 52; i++) 
+      {
+         is_Good[i] = false;
+         is_KaonP[i] = false;
+         is_KaonM[52] = false;
+         is_m2[i]=0;
+      }
+   }
 };
 
 #endif
