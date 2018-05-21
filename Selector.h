@@ -116,6 +116,10 @@ public :
    TH1F *minvW;
    TH1F *hm2E;
    TH1F *hm2W;
+   TH1F *hthetof;
+   TH1F *hphitof;
+   TH1F *hpltof;
+   TH1F *hetof;
    TFile *f;
 
    TLorentzVector par_1;  //Initialisation of var for Selector.C

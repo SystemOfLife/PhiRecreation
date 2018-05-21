@@ -33,7 +33,7 @@ const Double_t c2 = c*c;
 const Float_t K_mass2 = 0.49366716*0.49366716;
 const Float_t sigma_m2E = 120;
 const Float_t sigma_m2W = 90;
-const Float_t sigma_m2 = 0.016;
+const Float_t sigma_m2 = 0.000016;
 //#define sigma
 
 
@@ -46,10 +46,14 @@ void Selector::Begin(TTree * /*tree*/)
 
    hm2pE = new TH2F ("hm2pE","m^{2}", 20000,-0.2,100, 200,-0.2,100); //m^{2} vs p histogram booking
    hm2pW = new TH2F ("hm2pW", "m^{2}", 200,-0.2,1.5,200, -0.2,10); //m^{2} vs p histogram booking
-   minvE = new TH1F ("minvE","Invariant mass East",10000,-10000,10000);
-   minvW = new TH1F ("minvW","Invariant mass West",10000,-10000,10000);
+   minvE = new TH1F ("minvE","Invariant mass East",1000,-0.2,100);
+   minvW = new TH1F ("minvW","Invariant mass West",1000,-0.2,100);
    hm2E = new TH1F ("hm2E", "m^{2}", 20000, -0.2,1.5);
    hm2W = new TH1F ("hm2W", "m^{2}", 20000, -0.2,1.5);
+   hetof = new TH1F ("hetof", "Energy", 1000, 0, 1000);
+   hpltof = new TH1F ("pltof", "Distance", 1000, 0,1000);
+   hphitof = new TH1F ("phitof", "Phi0", 1000, -5, 5);
+   hthetof = new TH1F ("thetof", "Theta", 1000, -5, 5);
 
    TString option = GetOption();
 
@@ -91,10 +95,11 @@ Bool_t Selector::Process(Long64_t entry)
          std::cout << entry << std::endl;
     }
 
-     // if (entry > 700)
-     //  {
-     //    Abort("BFVSDGFVD");
-     //  }
+      if (entry > 1000)
+       {
+         //Abort("BFVSDGFVD");
+       }
+
    dropArrays();
    fChain->GetEntry(entry); 
 
@@ -119,7 +124,7 @@ Bool_t Selector::Process(Long64_t entry)
             {        //Tof East selection
                //std::cout << "hm2pEOk" << std::endl;
                //std::cout << "ttof= " << ttof[itrk] << " pltof= " << pltof[itrk] << "p= " << p[itrk] << std::endl;
-               is_Good[i]=true;
+               is_Good[itrk]=true;
                float tmp=(ttof[itrk])/pltof[itrk]*c;
                m2 = (p[itrk]*p[itrk]*((tmp*tmp)-1));   //В чём измеряется импульс? разобраться с единицами измерения
                //std::cout << "tmp = " << tmp << " m2=" << m2 << std::endl;
@@ -132,11 +137,19 @@ Bool_t Selector::Process(Long64_t entry)
 
                if( m2 > (K_mass2-sigma_m2) && (m2 < (K_mass2 + sigma_m2)) && (charge[itrk] > 0) )
                {
-                  is_KaonP[i]=true;
+                  is_KaonP[itrk]=true;
+                  hthetof->Fill(the0[itrk]);
+                  hphitof->Fill(phi0[itrk]);
+                  hpltof->Fill(pltof[itrk]);
+                  hetof->Fill(etof[itrk]);
                }
                if (m2 > (K_mass2-sigma_m2) && (m2<K_mass2+sigma_m2) && (charge[itrk]<0))
                {
-                  is_KaonM[i]=true;
+                  is_KaonM[itrk]=true;
+                  hthetof->Fill(the0[itrk]);
+                  hphitof->Fill(phi0[itrk]);
+                  hpltof->Fill(pltof[itrk]);
+                  hetof->Fill(etof[itrk]);
                }
             }
 
@@ -149,38 +162,51 @@ Bool_t Selector::Process(Long64_t entry)
                   m2sigma=(fabs(m2-K_mass2))/sigma_m2W;
                   hm2pW->Fill(m2,p[itrk]);
                   hm2W->Fill(m2);
-                  is_Good[i]=true;
-                  if(m2sigma>K_mass2-sigma_m2W && m2sigma<K_mass2+sigma_m2W && charge[itrk]>0)
+                  is_Good[itrk]=true;
+                  if(m2>K_mass2-sigma_m2W && m2<K_mass2+sigma_m2W && charge[itrk]>0)
                   {
-                     is_KaonP[i]=true;
+                     is_KaonP[itrk]=true;
+                     hthetof->Fill(the0[itrk]);
+                     hphitof->Fill(phi0[itrk]);
+                     hpltof->Fill(pltof[itrk]);
+                     hetof->Fill(etof[itrk]);
                   }
-                  if ( (m2sigma>(K_mass2-sigma_m2W)) && (m2sigma<(K_mass2+sigma_m2W)) && (charge[itrk]<0))
+                  if ( (m2>(K_mass2-sigma_m2W)) && (m2<(K_mass2+sigma_m2W)) && (charge[itrk]<0))
                   {
-                     is_KaonM[i]=true;
+                     is_KaonM[itrk]=true;
+                     hthetof->Fill(the0[itrk]);
+                     hphitof->Fill(phi0[itrk]);
+                     hpltof->Fill(pltof[itrk]);
+                     hetof->Fill(etof[itrk]);
                   }
                }
             }
       }
+      int jj = 0;
 
       for(int itrk=0; itrk<mh; itrk++)
       {
          if ( is_KaonP[itrk]=true && dcarm[itrk]==0 )
          {
+
             par_1.SetRho(p[itrk]);
             par_1.SetTheta(the0[itrk]);
             par_1.SetPhi(phi0[itrk]);
-            par_1.SetE(etof[itrk]);
+            par_1.SetE(sqrt((p[itrk]*p[itrk])+(K_mass2*c2)));
             for(int jtrk=0; jtrk<mh; jtrk++){
                if ( is_KaonM[jtrk]=true && dcarm[jtrk]==0 )
                {
                   par_2.SetRho(p[jtrk]);
                   par_2.SetTheta(the0[jtrk]);
-                  par_2.SetE(etof[jtrk]);
+                  par_2.SetE(sqrt((p[jtrk]*p[jtrk])+(K_mass2*c2)));
                   par_2.SetPhi(phi0[jtrk]);
                   pair=par_1+par_2;
                   m_inv=pair.M();
                   minvE->Fill(m_inv);
-                  std::cout << "minvE fill " << m_inv << std::endl;
+                  if (m_inv < 0)
+                  {
+                  std::cout << ++jj << ": minvE fill " << m_inv << std::endl;
+                  }
                }
             }  
          }
@@ -193,18 +219,18 @@ Bool_t Selector::Process(Long64_t entry)
             par_1.SetRho(p[itrk]);
             par_1.SetTheta(the0[itrk]);
             par_1.SetPhi(phi0[itrk]);
-            par_1.SetE(etof[itrk]);
+            par_1.SetE(sqrt((p[itrk]*p[itrk])+(K_mass2*c2)));
             for(int jtrk=0; jtrk<mh; jtrk++){
                if (is_KaonM[jtrk]=true && dcarm[jtrk]==1)
                {
                   par_2.SetRho(p[jtrk]);
                   par_2.SetTheta(the0[jtrk]);
-                  par_2.SetE(etof[jtrk]);
+                  par_2.SetE(sqrt((p[jtrk]*p[jtrk])+(K_mass2*c2)));
                   par_2.SetPhi(phi0[jtrk]);
                   pair=par_1+par_2;
                   m_inv=pair.M();
                   minvW->Fill(m_inv);
-                  std::cout << "minvW fill " << m_inv << std::endl;
+                  //std::cout << "minvW fill " << m_inv << std::endl;
                }
             }  
          }
@@ -228,6 +254,10 @@ void Selector::SlaveTerminate()
    hm2E->Write();
    hm2W->Write();
    minvW->Write();
+   hthetof->Write();
+   hphitof->Write();
+   hpltof->Write();
+   hetof->Write();
    
    //delete hm2pE;
    //delete hm2pW;
