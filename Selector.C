@@ -46,10 +46,14 @@ void Selector::Begin(TTree * /*tree*/)
 
    hm2pE = new TH2F ("hm2pE","m^{2}", 20000,-0.2,100, 200,-0.2,100); //m^{2} vs p histogram booking
    hm2pW = new TH2F ("hm2pW", "m^{2}", 200,-0.2,1.5,200, -0.2,10); //m^{2} vs p histogram booking
-   minvE = new TH1F ("minvE","Invariant mass East",1000,-0.2,100);
-   minvW = new TH1F ("minvW","Invariant mass West",1000,-0.2,100);
-   hm2E = new TH1F ("hm2E", "m^{2}", 20000, -0.2,1.5);
-   hm2W = new TH1F ("hm2W", "m^{2}", 20000, -0.2,1.5);
+   minvE = new TH1F ("minvE","Invariant mass East",500,0,2);
+   //minvE2 = new TH1F ("minvE","Invariant mass East",500,0,2);
+   //minvE3 = new TH1F ("minvE","Invariant mass East",500,0,2);
+   minvW = new TH1F ("minvW","Invariant mass West",500,0,2);
+   //minvW2 = new TH1F ("minvE","Invariant mass East",500,0,2);
+   //minvW3 = new TH1F ("minvE","Invariant mass East",500,0,2);
+   hm2E = new TH1F ("hm2E", "m^{2}", 15000, -0.2,1.5);
+   hm2W = new TH1F ("hm2W", "m^{2}", 15000, -0.2,1.5);
    hetof = new TH1F ("hetof", "Energy", 1000, 0, 1000);
    hpltof = new TH1F ("pltof", "Distance", 1000, 0,1000);
    hphitof = new TH1F ("phitof", "Phi0", 1000, -5, 5);
@@ -95,49 +99,31 @@ Bool_t Selector::Process(Long64_t entry)
          std::cout << entry << std::endl;
     }
 
-      if (entry > 1000)
-       {
-         //Abort("BFVSDGFVD");
-       }
-
    dropArrays();
    fChain->GetEntry(entry); 
 
-   if(mh>52){
+   if(mh>52)
+   {
       return kTRUE;
    }
 
-//   TLorentzVector par_1(1,1,1,1);  //Initialisation of var for Selector.C
-//   TLorentzVector par_2(1,1,1,1);
-//   TLorentzVector pair(1,1,1,1);
-
-   //std::cout << "Debug111" << std::endl;
-
-   if(cent>0 && cent<=80)
+   if(cent>0 && cent<60)
    {
 
       for(int itrk=0; itrk<mh; itrk++)
       {
-         //if(pt>0.4&&pt<3.8){ // track selection
-         //std::cout << "dcarm[itrk]: " << dcarm[itrk] << "    pltof[itrk]: " << pltof[itrk]<< "    etof[itrk]: " << etof[itrk]<< "    sigtof[itrk]: " << sigtof[itrk] << std::endl;
-            if( (dcarm[itrk]==0) && (pltof[itrk]>0) && (etof[itrk]>0.002) && (sigtof[itrk]<3) )
+            if( (dcarm[itrk]==0) && (pltof[itrk]>0) && (etof[itrk]>0.002) && (p[itrk]*sin(the0[itrk])/c <1.5) && (p[itrk]*sin(the0[itrk])/c > 0.3) && (sigtof[itrk]<3) )
             {        //Tof East selection
-               //std::cout << "hm2pEOk" << std::endl;
-               //std::cout << "ttof= " << ttof[itrk] << " pltof= " << pltof[itrk] << "p= " << p[itrk] << std::endl;
                is_Good[itrk]=true;
                float tmp=(ttof[itrk])/pltof[itrk]*c;
-               m2 = (p[itrk]*p[itrk]*((tmp*tmp)-1));   //В чём измеряется импульс? разобраться с единицами измерения
-               //std::cout << "tmp = " << tmp << " m2=" << m2 << std::endl;
+               m2 = (p[itrk]*p[itrk]*((tmp*tmp)-1));
 
                //m2sigma=(fabs(m2-K_mass2))/sigma_m2E;
                hm2E->Fill(m2);
                hm2pE->Fill(m2,p[itrk]);
-
-               //std::cout << "hm2pE fill " << m2sigma << " " << p[itrk] << std::endl;
-
                if( m2 > (K_mass2-sigma_m2) && (m2 < (K_mass2 + sigma_m2)) && (charge[itrk] > 0) )
                {
-                  is_KaonP[itrk]=true;
+                  is_KaonPE[itrk]=true;
                   hthetof->Fill(the0[itrk]);
                   hphitof->Fill(phi0[itrk]);
                   hpltof->Fill(pltof[itrk]);
@@ -145,17 +131,17 @@ Bool_t Selector::Process(Long64_t entry)
                }
                if (m2 > (K_mass2-sigma_m2) && (m2<K_mass2+sigma_m2) && (charge[itrk]<0))
                {
-                  is_KaonM[itrk]=true;
+                  is_KaonME[itrk]=true;
                   hthetof->Fill(the0[itrk]);
                   hphitof->Fill(phi0[itrk]);
                   hpltof->Fill(pltof[itrk]);
                   hetof->Fill(etof[itrk]);
                }
-            }
+            }s
 
             else
             {
-               if((dcarm[itrk]==1) && (pltof[itrk]>0) && (etof[itrk]>60) && (etof[itrk]<600) && (sigtof[itrk]<3))
+               if((dcarm[itrk]==1) && (pltof[itrk]>0) && (etof[itrk]>60) && (p[itrk]*sin(the0[itrk])/c <1.5) && (p[itrk]*sin(the0[itrk])/c > 0.3) && (etof[itrk]<600) && (sigtof[itrk]<3))
                {// Tof West selection
                   float tmp=(ttof[itrk]*c)/pltof[itrk];
                   m2=(p[itrk]*p[itrk]*((tmp*tmp)-1));
@@ -165,7 +151,7 @@ Bool_t Selector::Process(Long64_t entry)
                   is_Good[itrk]=true;
                   if(m2>K_mass2-sigma_m2W && m2<K_mass2+sigma_m2W && charge[itrk]>0)
                   {
-                     is_KaonP[itrk]=true;
+                     is_KaonPW[itrk]=true;
                      hthetof->Fill(the0[itrk]);
                      hphitof->Fill(phi0[itrk]);
                      hpltof->Fill(pltof[itrk]);
@@ -173,7 +159,7 @@ Bool_t Selector::Process(Long64_t entry)
                   }
                   if ( (m2>(K_mass2-sigma_m2W)) && (m2<(K_mass2+sigma_m2W)) && (charge[itrk]<0))
                   {
-                     is_KaonM[itrk]=true;
+                     is_KaonMW[itrk]=true;
                      hthetof->Fill(the0[itrk]);
                      hphitof->Fill(phi0[itrk]);
                      hpltof->Fill(pltof[itrk]);
@@ -182,31 +168,26 @@ Bool_t Selector::Process(Long64_t entry)
                }
             }
       }
-      int jj = 0;
 
       for(int itrk=0; itrk<mh; itrk++)
       {
-         if ( is_KaonP[itrk]=true && dcarm[itrk]==0 )
+         if ( is_KaonPE[itrk]=true && dcarm[itrk]==0 )
          {
 
             par_1.SetRho(p[itrk]);
             par_1.SetTheta(the0[itrk]);
             par_1.SetPhi(phi0[itrk]);
-            par_1.SetE(sqrt((p[itrk]*p[itrk])+(K_mass2*c2)));
+            par_1.SetE(sqrt((p[itrk]*p[itrk])+(K_mass2)));
             for(int jtrk=0; jtrk<mh; jtrk++){
-               if ( is_KaonM[jtrk]=true && dcarm[jtrk]==0 )
+               if ( is_KaonME[jtrk]=true && dcarm[jtrk]==0 )
                {
                   par_2.SetRho(p[jtrk]);
                   par_2.SetTheta(the0[jtrk]);
-                  par_2.SetE(sqrt((p[jtrk]*p[jtrk])+(K_mass2*c2)));
+                  par_2.SetE(sqrt((p[jtrk]*p[jtrk])+(K_mass2)));
                   par_2.SetPhi(phi0[jtrk]);
                   pair=par_1+par_2;
                   m_inv=pair.M();
                   minvE->Fill(m_inv);
-                  if (m_inv < 0)
-                  {
-                  std::cout << ++jj << ": minvE fill " << m_inv << std::endl;
-                  }
                }
             }  
          }
@@ -214,23 +195,22 @@ Bool_t Selector::Process(Long64_t entry)
 
       for(int itrk=0; itrk<mh; itrk++)
       {
-         if (is_KaonP[itrk]=true && dcarm[itrk]==1)
+         if (is_KaonPW[itrk]=true && dcarm[itrk]==1)
          {
             par_1.SetRho(p[itrk]);
             par_1.SetTheta(the0[itrk]);
             par_1.SetPhi(phi0[itrk]);
-            par_1.SetE(sqrt((p[itrk]*p[itrk])+(K_mass2*c2)));
+            par_1.SetE(sqrt((p[itrk]*p[itrk])+(K_mass2)));
             for(int jtrk=0; jtrk<mh; jtrk++){
-               if (is_KaonM[jtrk]=true && dcarm[jtrk]==1)
+               if (is_KaonMW[jtrk]=true && dcarm[jtrk]==1)
                {
                   par_2.SetRho(p[jtrk]);
                   par_2.SetTheta(the0[jtrk]);
-                  par_2.SetE(sqrt((p[jtrk]*p[jtrk])+(K_mass2*c2)));
+                  par_2.SetE(sqrt((p[jtrk]*p[jtrk])+(K_mass2)));
                   par_2.SetPhi(phi0[jtrk]);
                   pair=par_1+par_2;
                   m_inv=pair.M();
                   minvW->Fill(m_inv);
-                  //std::cout << "minvW fill " << m_inv << std::endl;
                }
             }  
          }
@@ -251,17 +231,17 @@ void Selector::SlaveTerminate()
    hm2pE->Write();
    hm2pW->Write();
    minvE->Write();
+   //minvE2->Write();
+   //minvE3->Write();
+   minvW->Write();
+   //minvW2->Write();
    hm2E->Write();
    hm2W->Write();
-   minvW->Write();
+   //minvW3->Write();
    hthetof->Write();
    hphitof->Write();
    hpltof->Write();
    hetof->Write();
-   
-   //delete hm2pE;
-   //delete hm2pW;
-   //delete minv;
 
    f->Close();
 }

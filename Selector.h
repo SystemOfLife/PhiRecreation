@@ -113,7 +113,11 @@ public :
    TH2F *hm2pE;
    TH2F *hm2pW;
    TH1F *minvE;
+   //TH1F *minvE2;
+   //TH1F *minvE3;
    TH1F *minvW;
+   //TH1F *minvW2;
+   //TH1F *minvW3;
    TH1F *hm2E;
    TH1F *hm2W;
    TH1F *hthetof;
@@ -131,8 +135,10 @@ public :
    Float_t m_inv;
 
    bool is_Good[52];
-   bool is_KaonP[52];
-   bool is_KaonM[52];
+   bool is_KaonPE[52];
+   bool is_KaonME[52];
+   bool is_KaonMW[52];
+   bool is_KaonPW[52];
    Float_t is_m2[52];
 
    Selector(TTree * /*tree*/ =0) : fChain(0), par_1(1,1,1,1), par_2(1,1,1,1), pair(1,1,1,1) { }
@@ -157,8 +163,10 @@ private:
       for (int i = 0; i < 52; i++) 
       {
          is_Good[i] = false;
-         is_KaonP[i] = false;
-         is_KaonM[52] = false;
+         is_KaonPE[i] = false;
+         is_KaonME[i] = false;
+         is_KaonPW[i] = false;
+         is_KaonMW[i] = false;
          is_m2[i]=0;
       }
    }

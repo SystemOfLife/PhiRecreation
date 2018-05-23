@@ -1,12 +1,7 @@
-#include "TH1.h"
-#include "TFile.h"
-#include "TH2.h"
-#include <time>
-#include <iostream>
+#!/bin/bash
 
-void PhiRec(){
-	TFile *f1 =new TFile("/home/arkady/NIRS/RootFiles/new62/311857.root");
-	mtree->MakeSelector("Selector");
-	mtree->Process("Selector.C");
+root.exe;
+TFile *f1 =new TFile("../../phenix/new62/311857.root");
+mtree->Process("Selector.C");
 
 	
